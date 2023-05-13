@@ -8,17 +8,17 @@ from datetime import date
 import calendar
 
 # Twitter API credentials
-consumer_key = ""
-consumer_secret = ""
-access_token = ""
-access_token_secret = ""
+consumer_key = "f9rrsr5uboVkG6I39hX62aZ92"
+consumer_secret = "zPLwaETFBAjMafIcfHOxlerNCWX6i5GUmwrmfanFHhV40xWSBP"
+access_token = "1623498959535718400-5aUa1MOKbQm5dP9RdURRu3CgqpmzNb"
+access_token_secret = "arN7E9GFQVrkUi5vqrDAnNTAFMJ2rHWkG6MfURn8PCbiL"
 
 # OpenAI API key
-openai.api_key = ""
+openai.api_key = "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"
 
 # Google Custom Search API credentials
-GOOGLE_DEV_KEY = ""
-GOOGLE_CX_KEY = ""
+GOOGLE_DEV_KEY = "AIzaSyCcfkpXbAHTcX4WTeSQmy8W68Qy5DPRC-w"
+GOOGLE_CX_KEY = "a0c525448efcc4030"
 
 # Function to generate a Twitter search query using OpenAI's GPT-4
 def get_twitter_search_query(query):
@@ -129,7 +129,8 @@ class Google_Search():
         messages.append({"role": "user", "content": 
                          "Based on my previous messages,\n"
                          "what is the most relevant and general web search query for the text below?\n\n"
-                        f"For context, it is: {date.today().strftime('%B')} {date.today().strftime('%Y')}\n"
+                        f"For context (if nessecary) it is: {date.today().strftime('%B')} {date.today().strftime('%d')} {date.today().strftime('%Y')}\n"
+                        #"For context (if nessecary) it is: mid may 2023"
                          "Text: " + query + "\n\n"
                          "Query:"})
 
@@ -146,18 +147,17 @@ class Google_Search():
         search_query = self._get_search_query(query)
 
         messages = [{"role": "system","content": 
-                     "You are a financial assistaint that answers questions based on search results and "
-                     "provides links at the end to relevant parts of your answer."
+                     "You are a financial assistaint that extracts all relevant data based on search results and "
+                     "provides links at the end to relevant parts of your answer. Keep your summaries very brief"
                      "Do not apologize or mention what you are not capable of"}]
 
-        prompt = "You are a financial assistaint, Answer query using the information from the search results below: \n\n"
+        prompt = "You are a financial assistaint, extract all relevant information from the search results below: \n\n"
         results = self._search(search_query)
 
         for result in results:
             prompt += "Link: " + result['link'] + "\n"
             prompt += "Title: " + result['title'] + "\n"
             prompt += "Content: " + result['snippet'] + "\n\n"
-        prompt += "\nRESPOND IN JSON Format with 'content' and 'sources'"
         prompt += "\nQuery: " + query
 
         messages.append({"role": "user", "content": prompt})
@@ -165,7 +165,7 @@ class Google_Search():
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
-            temperature=0.4,
+            temperature=0.2,
         )['choices'][0]['message']['content']
 
         return response
@@ -174,11 +174,12 @@ class Google_Search():
 def AIResponse(query, tweets, google):
         messages = [{"role": "system", "content": 
                      "You are a bot that answers questions to the best of your ability based on search results from twitter and a google search.\n"
-                     "Do not apologize or mention what you are not capable of."
-                     "Do not start your response with anything like 'Based on the search results'"}]
+                     "Do not apologize or mention what you are not capable of." 
+                     "Use line breaks to split your response into 1-3 paragraphs."
+                     "Do not say anything like 'Google search results show'"}]
     
         messages.append({"role": "user", "content": 
-                         "Answer the question to the best of your ability based on the search results and the query\n"  
+                         "Answer the question step by step to the best of your ability based on the search results and the query\n" 
                          "Twitter results: " + tweets + "\n\n"
                          "Google Results: " + google + "\n"
                          "Query:" + query})
@@ -186,24 +187,23 @@ def AIResponse(query, tweets, google):
         Final_Answer = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
-            temperature=0,
+            temperature=0.2,
         )['choices'][0]['message']['content']
 
         return Final_Answer
 
-
 # Main function
 def main(query_text):
     Google = Google_Search()
-    msg = Google.run_text(query_text)
-    data = json.loads(msg)
+    data = Google.run_text(query_text)
 
-    print(data['content'])
+
+    print(data)
 
     generated_query = get_twitter_search_query(query_text)
     ans = twitter_search(generated_query)
     Twitter_Answer = Twitter_AIResponse(query_text, ans)
-    return AIResponse(query_text, Twitter_Answer, data['content'])
+    return AIResponse(query_text, Twitter_Answer, data)
 
 
 # Interface and Execution
