@@ -8,17 +8,17 @@ from datetime import date
 import calendar
 
 # Twitter API credentials
-consumer_key = "f9rrsr5uboVkG6I39hX62aZ92"
-consumer_secret = "zPLwaETFBAjMafIcfHOxlerNCWX6i5GUmwrmfanFHhV40xWSBP"
-access_token = "1623498959535718400-5aUa1MOKbQm5dP9RdURRu3CgqpmzNb"
-access_token_secret = "arN7E9GFQVrkUi5vqrDAnNTAFMJ2rHWkG6MfURn8PCbiL"
+consumer_key = ""
+consumer_secret = ""
+access_token = ""
+access_token_secret = ""
 
 # OpenAI API key
-openai.api_key = "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"
+openai.api_key = ""
 
 # Google Custom Search API credentials
-GOOGLE_DEV_KEY = "AIzaSyCcfkpXbAHTcX4WTeSQmy8W68Qy5DPRC-w"
-GOOGLE_CX_KEY = "a0c525448efcc4030"
+GOOGLE_DEV_KEY = ""
+GOOGLE_CX_KEY = ""
 
 # Function to generate a Twitter search query using OpenAI's GPT-4
 def get_twitter_search_query(query):
