@@ -7,32 +7,38 @@ from googleapiclient.discovery import build
 from datetime import date
 import calendar
 
+# Twitter API credentials
 consumer_key = ""
 consumer_secret = ""
 access_token = ""
 access_token_secret = ""
+
+# OpenAI API key
 openai.api_key = ""
+
+# Google Custom Search API credentials
 GOOGLE_DEV_KEY = ""
 GOOGLE_CX_KEY = ""
 
-    
+# Function to generate a Twitter search query using OpenAI's GPT-4
 def get_twitter_search_query(query):
-    messages = [{"role": "system",
-                    "content": "You are an AI assistant that helps to convert text into a relevant Twitter search API query."
-                            "You output only 1 query for the latest message and nothing else."
+    messages = [{"role": "system", "content": 
+                 "You are an AI assistant that helps to convert text into a relevant Twitter search API query.\n"
+                 "You output only 1 query for the latest message and nothing else.\n"
 
-                            "Info:"
-                            'Operator: keyword	Type: Standalone Example: pepsi OR cola OR "coca cola"'
+                 "Info:\n"
+                 'Operator: keyword	Type: Standalone Example: pepsi OR cola OR "coca cola"\n'
 
-                            'Examples:'
-                            'Which NHL games are on tonight?: ("nhl news" OR "nhl tonight" OR "hockey games" OR "hockey tonight") -is:retweet lang:en -has:links -is:reply'
-                            'What is some recent soccer news?: ("soccer news" OR "football news" OR "soccer updates" OR "football updates") -is:retweet -is:reply lang:en -has:links -is:reply'
-                            'What stocks are people buying?: ("stocks" OR "stock market" OR "investing" OR "investments") ("buying" OR "purchasing" OR "investing") -is:retweet -is:reply lang:en -has:links'}]
-    
-    messages.append({"role": "user", "content": "Based on my previous messages, "
-                                                "what is the most relevant Twitter search query for the text below?\n\n"
-                                                "Text: " + query + "\n\n"
-                                                                    "Query:"})
+                 'Examples:\n'
+                 'Which NHL games are on tonight?: ("nhl news" OR "nhl tonight" OR "hockey games" OR "hockey tonight") -is:retweet lang:en -has:links -is:reply\n'
+                 'What is some recent soccer news?: ("soccer news" OR "football news" OR "soccer updates" OR "football updates") -is:retweet -is:reply lang:en -has:links -is:reply\n'
+                 'What stocks are people buying?: ("stocks" OR "stock market" OR "investing" OR "investments") ("buying" OR "purchasing" OR "investing") -is:retweet -is:reply lang:en -has:links\n'}]
+
+    messages.append({"role": "user", "content": 
+                     "Based on my previous messages,\n"
+                     "What is the most relevant Twitter search query for the text below?\n\n"
+                     "Text: " + query + "\n\n"
+                     "Query:"})
     
     search_query = openai.ChatCompletion.create(
         model="gpt-4",
@@ -43,7 +49,7 @@ def get_twitter_search_query(query):
     print(search_query.strip("\""))
     return search_query.strip("\"")
     
-
+# Function to execute a Twitter search using the given query and return the tweets found
 def twitter_search(query):
     search_url = "https://api.twitter.com/2/tweets/search/recent"
 
@@ -57,12 +63,14 @@ def twitter_search(query):
 
     auth = OAuth1(consumer_key, consumer_secret, access_token, access_token_secret)
 
+    # Function to connect to Twitter API endpoint and return the JSON response
     def connect_to_endpoint(url, params):
         response = requests.get(url, auth=auth, params=params)
         if response.status_code != 200:
             raise Exception(response.status_code, response.text)
         return response.json()
 
+    # Function to parse the JSON response and return the tweets as a string
     def print_tweets(json_response):
         i = 0
         all_tweets = ""
@@ -71,18 +79,37 @@ def twitter_search(query):
                 user = next(user for user in json_response['includes']['users'] if user['id'] == tweet['author_id'])
                 tweet_url = f"https://twitter.com/{user['username']}/status/{tweet['id']}"
                 tweet_text = f"{user['username']}: {tweet['text']}\n"
-                #print(tweet_text)
-                #print(f"Tweet URL: {tweet_url}\n")
                 all_tweets += tweet_text
         return all_tweets
 
     json_response = connect_to_endpoint(search_url, query_params)
+
     all_tweets = print_tweets(json_response)
     
-    print(all_tweets)
-
     return all_tweets
 
+# Function to generate AI response to orignal question based on fetched tweets
+def Twitter_AIResponse(query, tweets):
+        messages = [{"role": "system","content": 
+                     "You are a bot that answers questions to the best of your ability based on search results from twitter."
+                     "Do not apologize or mention what you are not capable of."
+                     "do not start your response with anything like 'Based on the search results'"}]
+    
+        messages.append({"role": "user", "content": 
+                         "Answer the question to the best of your ability based on the search results and the query"
+                         "results: " + tweets + "\n\n"
+                         "Query:" + query})
+
+        search_query = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=messages,
+            temperature=0,
+        )['choices'][0]['message']['content']
+
+        return search_query
+
+
+# Reference: https://github.com/VRSEN/chatgtp-bing-clone
 class Google_Search():
     # Function to initalize Google Custom Search API
     def __init__(self):
@@ -95,17 +122,16 @@ class Google_Search():
 
     # Function to construct Google query
     def _get_search_query(self, query):
-        #today = 
+        messages = [{"role": "system","content": 
+                     "You are an assistant that helps to convert text into a web search engine query."
+                     "You output only 1 query for the latest message and nothing else."}]
 
-        messages = [{"role": "system",
-                     "content": "You are an assistant that helps to convert text into a web search engine query. "
-                                "You output only 1 query for the latest message and nothing else."}]
-
-        messages.append({"role": "user", "content": "Based on my previous messages, "
-                                                    "what is the most relevant and general web search query for the text below?\n\n"
-                                                    f"For context, it is: {date.today().strftime('%B')} {date.today().strftime('%Y')}"
-                                                    "Text: " + query + "\n\n"
-                                                                       "Query:"})
+        messages.append({"role": "user", "content": 
+                         "Based on my previous messages,\n"
+                         "what is the most relevant and general web search query for the text below?\n\n"
+                        f"For context, it is: {date.today().strftime('%B')} {date.today().strftime('%Y')}\n"
+                         "Text: " + query + "\n\n"
+                         "Query:"})
 
         search_query = openai.ChatCompletion.create(
             model="gpt-4",
@@ -119,69 +145,73 @@ class Google_Search():
     def run_text(self, query):
         search_query = self._get_search_query(query)
 
-        # add system message to the front
-        messages = [{"role": "system",
-                     "content": "You are a financial assistant that answers questions based on search results and "
-                                "provides links at the end to relevant parts of your answer. Do not apologize or mention what you are not capable of, make your response very brief"}]
+        messages = [{"role": "system","content": 
+                     "You are a financial assistaint that answers questions based on search results and "
+                     "provides links at the end to relevant parts of your answer."
+                     "Do not apologize or mention what you are not capable of"}]
 
-        # Construct prompt from search results
-        prompt = "You are a financial assistant, Answer query using the information from the search results below: \n\n"
+        prompt = "You are a financial assistaint, Answer query using the information from the search results below: \n\n"
         results = self._search(search_query)
+
         for result in results:
             prompt += "Link: " + result['link'] + "\n"
             prompt += "Title: " + result['title'] + "\n"
             prompt += "Content: " + result['snippet'] + "\n\n"
-        prompt += "\nRESPOND IN JSON Format with 'content' and 'sources', keep your response under 1200 chars"
+        prompt += "\nRESPOND IN JSON Format with 'content' and 'sources'"
         prompt += "\nQuery: " + query
 
         messages.append({"role": "user", "content": prompt})
 
-        # Generate response
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
             temperature=0.4,
-            max_tokens = 350,
-
         )['choices'][0]['message']['content']
 
         return response
     
+# Function to get final response using Twitter and Google Results
 def AIResponse(query, tweets, google):
         messages = [{"role": "system", "content": 
                      "You are a bot that answers questions to the best of your ability based on search results from twitter and a google search.\n"
-                     "Do not apologize or mention what you are not capable of, make your response very brief "
-                     "do not start your response with anything like 'Based on the search results'"}]
+                     "Do not apologize or mention what you are not capable of."
+                     "Do not start your response with anything like 'Based on the search results'"}]
     
-        messages.append({"role": "user", "content": "Answer the question to the best of your ability based on the search results and the query\n"
-                                
-                        "Twitter results: " + json.dumps(tweets) + "\n\n"
-                        "Google Results: " + json.dumps(google) + "\n"
-                        "Query:" + query})
-
-        search_query = openai.ChatCompletion.create(
+        messages.append({"role": "user", "content": 
+                         "Answer the question to the best of your ability based on the search results and the query\n"  
+                         "Twitter results: " + tweets + "\n\n"
+                         "Google Results: " + google + "\n"
+                         "Query:" + query})
+        print(messages)
+        Final_Answer = openai.ChatCompletion.create(
             model="gpt-4",
             messages=messages,
             temperature=0,
         )['choices'][0]['message']['content']
 
-        return search_query
+        return Final_Answer
 
+
+# Main function
 def main(query_text):
     Google = Google_Search()
     msg = Google.run_text(query_text)
     data = json.loads(msg)
 
+    print(data['content'])
+
     generated_query = get_twitter_search_query(query_text)
     ans = twitter_search(generated_query)
-    return AIResponse(query_text, ans, data)
+    Twitter_Answer = Twitter_AIResponse(query_text, ans)
+    return AIResponse(query_text, Twitter_Answer, data['content'])
 
 
-iface = gr.Interface(
+# Interface and Execution
+interface = gr.Interface(
     fn=main,
     inputs=[gr.inputs.Textbox(lines=3, label="Question:")],
     outputs=[gr.outputs.Textbox(label="Output:")],
     title="Twitter-Google-GPT",
-    description="Enter your question and get a consensus from a curated Twitter and Google search summarized by AI.",
+    description="Twitter-Google-GPT is an AI tool that utilizes OpenAI's GPT-4 to transform your questions into search queries for Twitter and Google, yielding concise, relevant responses from diverse sources.",
 )
-iface.launch()
+interface.launch()
