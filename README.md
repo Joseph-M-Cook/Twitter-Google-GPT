@@ -13,6 +13,7 @@ TwitterGoogleGPT, leverages OpenAI's GPT-4 model to transform user queries into 
   <img src="https://github.com/Joseph-M-Cook/Twitter-Google-GPT/blob/275bc97498a50f970d51472d09f85cebe8b11379/TwitterGoogleGPTDemo.png"
 </div>
 <div align="left">
+  
 ## Installation
 
 1. Clone the repository:
