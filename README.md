@@ -2,15 +2,17 @@
 <div align="center">
   <img src ="https://github.com/Joseph-M-Cook/Twitter-Google-GPT/blob/b798ba3649efeb1d7e20db8537b8513318bb32d3/Twitter-Google-GPT.png"
 </div>
-<div align="center">
-  <img src="https://github.com/Joseph-M-Cook/Twitter-Google-GPT/blob/5f04ef978ebd0f2ffc2924cf7279239e43c3c184/TwitterGoogleGPT_Demo.png"
-</div>
   
 <div align="left">
   
 ## Overview
 TwitterGoogleGPT, leverages OpenAI's GPT-4 model to transform user queries into meaningful search queries for both Twitter and Google. It fetches relevant tweets using Twitter's Search API and retrieves significant data from Google's Custom Search API. This dual-source information is then processed, summarized, and presented as comprehensive responses, providing the user with rich and diverse insights in response to their queries.
-
+  
+## Demo
+<div align="center">
+  <img src="https://github.com/Joseph-M-Cook/Twitter-Google-GPT/blob/5f04ef978ebd0f2ffc2924cf7279239e43c3c184/TwitterGoogleGPT_Demo.png"
+</div>
+<div align="left">
 ## Installation
 
 1. Clone the repository:
